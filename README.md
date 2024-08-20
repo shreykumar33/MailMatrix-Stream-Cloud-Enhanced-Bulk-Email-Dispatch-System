@@ -61,19 +61,18 @@ MailMatrix follows a serverless architecture using the following AWS services:
  ![buck3](https://github.com/user-attachments/assets/91600141-3160-4715-a7dc-79bc0fe30a91)
 
    
-4. **Set Up SES**: Verify your domain in Amazon SES and configure SES to send emails from your verified domain.
+3. **Set Up SES**: Verify your domain in Amazon SES and configure SES to send emails from your verified domain.
 
    ![ses](https://github.com/user-attachments/assets/8a4c39f6-4d96-4ddc-a1d1-fc47df3496e2)
 
 
-6. **Deploy Lambda Function**: Upload your Lambda function code (Python) via the AWS Lambda console or CLI. Set up an S3 event trigger via EventBridge to invoke Lambda when a new file is uploaded.
+4. **Deploy Lambda Function**: Upload your Lambda function code (Python) via the AWS Lambda console or CLI. Set up an S3 event trigger via EventBridge to invoke Lambda when a new file is uploaded.
    ![lambda1](https://github.com/user-attachments/assets/2cd36c45-dbbe-4010-af5b-411776b90727)
    ![lambda2](https://github.com/user-attachments/assets/e885b1c1-ef5c-4c0b-85ca-343c8ba51492)
    ![lambda3](https://github.com/user-attachments/assets/6e644405-1c5c-46e9-aa98-70db4f854fe5)
    ![lambda4](https://github.com/user-attachments/assets/fe507a18-e6f6-4481-94c1-3342753ae6db)
 
-8. **Configure CloudWatch and SNS**: Set up CloudWatch alarms to monitor Lambda's performance. Create an SNS topic to send notifications in case of errors.
-
+5. **Configure CloudWatch and SNS**: Set up CloudWatch alarms to monitor Lambda's performance. Create an SNS topic to send notifications in case of errors.
 
    ![cloudformation](https://github.com/user-attachments/assets/7a7536be-4955-45d6-b804-106526394c80)
 
@@ -86,7 +85,7 @@ MailMatrix follows a serverless architecture using the following AWS services:
    ![cloudwatchtest](https://github.com/user-attachments/assets/100e2daf-8ed0-4663-98aa-3c47f5a9f9ce)
    #alarms deployment --
 
-10. **IAM Roles and Permissions**: Assign a well-defined IAM role to your Lambda function with least-privilege permissions to access S3, SES, and CloudWatch.
+6. **IAM Roles and Permissions**: Assign a well-defined IAM role to your Lambda function with least-privilege permissions to access S3, SES, and CloudWatch.
     
     ![role 1](https://github.com/user-attachments/assets/f4935ab3-e5c9-4469-8da4-a959b237668e)
 
@@ -96,7 +95,7 @@ MailMatrix follows a serverless architecture using the following AWS services:
 
     ![trigger_role](https://github.com/user-attachments/assets/c3f12be6-c8d4-4b2a-94a4-9a56051ca975)
 
-12. **Test the System**: Upload a CSV file to the S3 bucket and verify that emails are sent to the recipients listed in the file. Monitor CloudWatch logs and ensure that any errors trigger alerts via SNS.
+7. **Test the System**: Upload a CSV file to the S3 bucket and verify that emails are sent to the recipients listed in the file. Monitor CloudWatch logs and ensure that any errors trigger alerts via SNS.
 
     ![sns1](https://github.com/user-attachments/assets/fef2afba-8c64-4bc0-b6a4-d4d172029cf6)
 
