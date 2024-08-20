@@ -18,6 +18,9 @@ With MailMatrix:
 
 MailMatrix follows a serverless architecture using the following AWS services:
 
+![project2 architecture](https://github.com/user-attachments/assets/34eecd37-2a16-49bc-a79b-43de87b1add5)
+
+
 1. **Amazon S3**: CSV files containing recipient details (e.g., name, email) are uploaded here, triggering events.
 2. **Amazon EventBridge**: Listens for S3 events and triggers the Lambda function for processing.
 3. **AWS Lambda**: Handles business logic: from parsing CSV files, personalizing email templates, and sending them via SES.
@@ -27,6 +30,9 @@ MailMatrix follows a serverless architecture using the following AWS services:
 7. **AWS IAM**: Manages permissions and security policies for Lambda to interact with S3, SES, and CloudWatch.
 
 ## Project Workflow
+
+![workflow](https://github.com/user-attachments/assets/b1ea7e1a-cf1b-4082-8bee-33ca819318a0)
+
 
 1. **Upload CSV File**: A CSV file with recipient information (e.g., name, email) is uploaded to an Amazon S3 bucket.
 2. **Event Trigger**: An S3 event triggers Amazon EventBridge, which in turn activates the AWS Lambda function.
@@ -46,11 +52,60 @@ MailMatrix follows a serverless architecture using the following AWS services:
 
 1. **Configure AWS CLI**: Ensure you have the AWS CLI installed and configured with your credentials.
 2. **Create the S3 Bucket**: Create an S3 bucket where you will upload your CSV files containing recipient details.
-3. **Set Up SES**: Verify your domain in Amazon SES and configure SES to send emails from your verified domain.
-4. **Deploy Lambda Function**: Upload your Lambda function code (Python) via the AWS Lambda console or CLI. Set up an S3 event trigger via EventBridge to invoke Lambda when a new file is uploaded.
-5. **Configure CloudWatch and SNS**: Set up CloudWatch alarms to monitor Lambda's performance. Create an SNS topic to send notifications in case of errors.
-6. **IAM Roles and Permissions**: Assign a well-defined IAM role to your Lambda function with least-privilege permissions to access S3, SES, and CloudWatch.
-7. **Test the System**: Upload a CSV file to the S3 bucket and verify that emails are sent to the recipients listed in the file. Monitor CloudWatch logs and ensure that any errors trigger alerts via SNS.
+
+   
+ ![buck1](https://github.com/user-attachments/assets/bdaa6f84-115f-48ea-a7a2-d8cfc9443f7b)
+
+ ![buck2](https://github.com/user-attachments/assets/4cc846dc-3629-481f-9cc3-f82b1b5e0810)
+
+ ![buck3](https://github.com/user-attachments/assets/91600141-3160-4715-a7dc-79bc0fe30a91)
+
+   
+4. **Set Up SES**: Verify your domain in Amazon SES and configure SES to send emails from your verified domain.
+
+   ![ses](https://github.com/user-attachments/assets/8a4c39f6-4d96-4ddc-a1d1-fc47df3496e2)
+
+
+6. **Deploy Lambda Function**: Upload your Lambda function code (Python) via the AWS Lambda console or CLI. Set up an S3 event trigger via EventBridge to invoke Lambda when a new file is uploaded.
+   ![lambda1](https://github.com/user-attachments/assets/2cd36c45-dbbe-4010-af5b-411776b90727)
+   ![lambda2](https://github.com/user-attachments/assets/e885b1c1-ef5c-4c0b-85ca-343c8ba51492)
+   ![lambda3](https://github.com/user-attachments/assets/6e644405-1c5c-46e9-aa98-70db4f854fe5)
+   ![lambda4](https://github.com/user-attachments/assets/fe507a18-e6f6-4481-94c1-3342753ae6db)
+
+8. **Configure CloudWatch and SNS**: Set up CloudWatch alarms to monitor Lambda's performance. Create an SNS topic to send notifications in case of errors.
+
+
+   ![cloudformation](https://github.com/user-attachments/assets/7a7536be-4955-45d6-b804-106526394c80)
+
+   ![cloudwatch](https://github.com/user-attachments/assets/d66d0dc3-bd2c-40dc-84c1-d5bb300addfe)
+
+   ![cloudwatch1](https://github.com/user-attachments/assets/e7725345-5dcd-4c19-8b19-c0e74180fab5)
+
+   ![cloudwatch3](https://github.com/user-attachments/assets/bbe47557-d426-4cdf-8863-6913e582680a)
+
+   ![cloudwatchtest](https://github.com/user-attachments/assets/100e2daf-8ed0-4663-98aa-3c47f5a9f9ce)
+   #alarms deployment --
+
+10. **IAM Roles and Permissions**: Assign a well-defined IAM role to your Lambda function with least-privilege permissions to access S3, SES, and CloudWatch.
+    
+    ![role 1](https://github.com/user-attachments/assets/f4935ab3-e5c9-4469-8da4-a959b237668e)
+
+    ![role 2 custom](https://github.com/user-attachments/assets/61b7a043-4342-4537-8c3d-126607115785)
+
+    ![roles 3 custom](https://github.com/user-attachments/assets/3cc51a23-3190-4795-bef2-c7abb9255783)
+
+    ![trigger_role](https://github.com/user-attachments/assets/c3f12be6-c8d4-4b2a-94a4-9a56051ca975)
+
+12. **Test the System**: Upload a CSV file to the S3 bucket and verify that emails are sent to the recipients listed in the file. Monitor CloudWatch logs and ensure that any errors trigger alerts via SNS.
+
+    ![sns1](https://github.com/user-attachments/assets/fef2afba-8c64-4bc0-b6a4-d4d172029cf6)
+
+    ![sns2](https://github.com/user-attachments/assets/56659b5b-9c68-4fb5-96bf-74ba21abe9e6)
+
+    ![mail2](https://github.com/user-attachments/assets/fca7a716-5394-434e-8dd7-151466c72a55)
+
+    ![mail3](https://github.com/user-attachments/assets/427d068a-ec3f-4ce7-8a37-b7e54f7122f7)
+
 
 ## Notes and Best Practices
 
@@ -63,6 +118,8 @@ MailMatrix follows a serverless architecture using the following AWS services:
 7. **Logging and Monitoring**: Regularly check CloudWatch logs for troubleshooting and ensure smooth operations. Set alarms for critical issues.
 
 ## Potential Enhancements
+
+To scale the MailMatrix project beyond its current sandbox environment, you can easily transition to sending emails to unverified recipients by moving out of the SES sandbox. This transition involves a simple process of requesting production access through the Amazon SES console. Once your SES account is out of the sandbox, you can send emails to any email addresses, not just those that are verified. This scalability ensures that MailMatrix can handle large-scale email campaigns efficiently, reaching a broader audience while maintaining the same level of automation, security, and monitoring. By expanding the SES sending limits and integrating with additional AWS services or third-party tools, you can further enhance the system's capacity and functionality to meet growing demands.
 
 - **Multiple Templates**: Extend the system to support multiple templates, allowing dynamic content for different recipients or campaigns.
 - **Database Integration**: Add a database (e.g., DynamoDB) to track email sending history, store recipient preferences, and handle analytics.
