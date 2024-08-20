@@ -1,0 +1,217 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  CloudFormation template for the MailMatrix Stream Project.
+  This template deploys a solution that involves:
+  - An S3 bucket for storing and managing CSV files.
+  - A Lambda function that processes CSV files and sends emails using SES.
+  - IAM roles and policies for secure access and execution.
+  - CloudWatch alarms and SNS for monitoring and notifications.
+  - EventBridge for triggering Lambda functions on S3 object creation and deletion.
+
+# Define Parameters
+Parameters:
+  LambdaExecutionRoleName:
+    Type: String
+    Description: >
+      The name of the IAM role that the Lambda function will assume for execution.
+      This role is configured with the necessary permissions to access S3 and SES.
+    Default: S3EmailTriggerRole
+
+  S3BucketName:
+    Type: String
+    Description: >
+      The name of the S3 bucket where CSV files will be stored and processed.
+      This bucket is used as the event source for the Lambda function.
+    Default: mailmatrixstore
+
+  LambdaFunctionName:
+    Type: String
+    Description: >
+      The name of the Lambda function that processes S3 events and sends emails.
+    Default: S3EmailTriggerFunction
+
+  EmailSource:
+    Type: String
+    Description: >
+      The email address to use as the 'From' address when sending emails via SES.
+      This email should be verified in SES.
+    Default: guptashrey555@gmail.com
+
+  AlarmEmail:
+    Type: String
+    Description: >
+      The email address to receive CloudWatch alarm notifications.
+    Default: admin@example.com
+
+Resources:
+  # Create S3 Bucket
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Ref S3BucketName
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldFiles
+            Status: Enabled
+            ExpirationInDays: 30
+      Tags:
+        - Key: Name
+          Value: !Ref S3BucketName
+    Metadata:
+      AWS::CloudFormation::Designer:
+        id: d7c15c77-4c54-4d88-90ae-f4a06c643a6e
+    DeletionPolicy: Retain
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MinInstancesInService: 1
+        MaxBatchSize: 1
+        PauseTime: PT5M
+
+  # IAM Role for Lambda Execution
+  LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Ref LambdaExecutionRoleName
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonSESFullAccess
+    Metadata:
+      AWS::CloudFormation::Designer:
+        id: 0619cfb2-0ef2-48b8-b2a8-91c37d83a94b
+
+  # Lambda Function
+  LambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: !Ref LambdaFunctionName
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: !Ref S3BucketName
+        S3Key: lambda-code.zip
+      Runtime: python3.8
+      Timeout: 300
+      MemorySize: 128
+      Environment:
+        Variables:
+          EMAIL_SOURCE: !Ref EmailSource
+    Metadata:
+      AWS::CloudFormation::Designer:
+        id: 2d6b9a45-2a2d-464a-ae47-946f9172c6ae
+
+  # EventBridge Rule to Trigger Lambda Function
+  EventRule:
+    Type: 'AWS::Events::Rule'
+    Properties:
+      Name: S3EventRule
+      EventPattern:
+        source:
+          - aws.s3
+        detail-type:
+          - AWS API Call via CloudTrail
+        detail:
+          eventSource:
+            - s3.amazonaws.com
+          eventName:
+            - PutObject
+            - DeleteObject
+      Targets:
+        - Arn: !GetAtt LambdaFunction.Arn
+          Id: LambdaFunctionTarget
+    Metadata:
+      AWS::CloudFormation::Designer:
+        id: 09b9d30c-6d1e-4b38-83a2-87ecf95fc7db
+
+  # Permissions to Allow EventBridge to Invoke Lambda Function
+  LambdaInvokePermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref LambdaFunction
+      Principal: 'events.amazonaws.com'
+      SourceArn: !GetAtt EventRule.Arn
+    Metadata:
+      AWS::CloudFormation::Designer:
+        id: d04296c2-ccfd-45d3-b5f5-509e04a7ec16
+
+  # CloudWatch Log Group for Lambda Function Logs
+  LambdaLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${LambdaFunctionName}'
+      RetentionInDays: 14
+    Metadata:
+      AWS::CloudFormation::Designer:
+        id: e1e0876c-7f92-4398-8a03-20b69e1e0f4e
+
+  # CloudWatch Alarm for Lambda Errors
+  LambdaErrorAlarm:
+    Type: 'AWS::CloudWatch::Alarm'
+    Properties:
+      AlarmDescription: 'Alarm for Lambda function errors'
+      Namespace: 'AWS/Lambda'
+      MetricName: 'Errors'
+      Dimensions:
+        - Name: 'FunctionName'
+          Value: !Ref LambdaFunctionName
+      Statistic: 'Sum'
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: 'GreaterThanOrEqualToThreshold'
+      AlarmActions:
+        - !Ref SNSTopic
+      OKActions:
+        - !Ref SNSTopic
+      InsufficientDataActions:
+        - !Ref SNSTopic
+    Metadata:
+      AWS::CloudFormation::Designer:
+        id: d7f8ebf2-cb92-4e1e-b64b-52a534cdd79c
+
+  # SNS Topic for Alarm Notifications
+  SNSTopic:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: LambdaErrorNotifications
+    Metadata:
+      AWS::CloudFormation::Designer:
+        id: 6d572d0a-457a-4380-b94c-1a48c4e5cfd1
+
+  # SNS Subscription for Alarm Notifications
+  SNSSubscription:
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref SNSTopic
+      Protocol: 'email'
+      Endpoint: !Ref AlarmEmail
+    Metadata:
+      AWS::CloudFormation::Designer:
+        id: 0a735b29-3f43-472c-a3ec-f8a7a04ec906
+
+Outputs:
+  LambdaFunctionArn:
+    Description: "The ARN of the Lambda function that processes S3 events and sends emails."
+    Value: !GetAtt LambdaFunction.Arn
+
+  S3BucketName:
+    Description: "The name of the S3 bucket used for storing and processing CSV files."
+    Value: !Ref S3BucketName
+
+  EventRuleArn:
+    Description: "The ARN of the EventBridge rule that triggers the Lambda function on S3 events."
+    Value: !GetAtt EventRule.Arn
+
+  SNSArn:
+    Description: "The ARN of the SNS topic used for CloudWatch alarm notifications."
+    Value: !Ref SNSTopic
