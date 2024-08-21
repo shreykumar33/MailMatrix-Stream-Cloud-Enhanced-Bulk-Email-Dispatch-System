@@ -2,7 +2,7 @@ import argparse
 import os
 from core.data_manager import load_recipients
 from core.template_manager import render_template
-from email_sender import send_email  # Ensure this import is correct
+from email_sender import send_email 
 
 def main():
     # Parsing command line arguments
@@ -14,10 +14,10 @@ def main():
 
     # Load recipients
     recipients_file = args.recipients
-    template_file = os.path.basename(args.template)  # Get the template file name only
+    template_file = os.path.basename(args.template)  #the template file name only
     subject = args.subject
 
-    # Load recipients from the provided file
+    #Load recipients from the provided file:)
     recipients = load_recipients(recipients_file)
 
     # Render the email body for each recipient and send the email
