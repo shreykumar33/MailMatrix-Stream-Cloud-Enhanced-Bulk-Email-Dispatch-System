@@ -9,6 +9,6 @@ def render_template(template_name, context):
     return template.render(context)
 
 if __name__ == "__main__":
-    context = {"name": "lulu"}
+    context = {"name": "shrey"}
     rendered_email = render_template("welcome_email.html", context)
     print(rendered_email)
