@@ -17,14 +17,14 @@ def main():
     template_file = os.path.basename(args.template)  #the template file name only
     subject = args.subject
 
-    #Load recipients from the provided file:)
+    
     recipients = load_recipients(recipients_file)
 
     # Render the email body for each recipient and send the email
     for recipient in recipients:
         email = recipient['email']
         context = {"name": recipient.get('name', 'Valued Customer')}
-        body = render_template(template_file, context)  # Render email body from template
+        body = render_template(template_file, context) 
         response = send_email(email, subject, body)
         print(f"Email sent to {email}! Message ID: {response['MessageId']}")
 
