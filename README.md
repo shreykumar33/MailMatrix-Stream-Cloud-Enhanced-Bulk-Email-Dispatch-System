@@ -197,7 +197,7 @@ We customize the `lambda_function.py` to process the `recipient.csv` and send em
 - **PDF Attachment**: Fetches the corresponding PDF file from local storage or an S3 bucket and attaches it to the email.
 - **Email Sending**: Sends the email through AWS SES with the correct subject line and attached PDF.
 
-#### Example Code
+#### Illustrative Code for implementing Lambda function 
 
 ```python
 import boto3
