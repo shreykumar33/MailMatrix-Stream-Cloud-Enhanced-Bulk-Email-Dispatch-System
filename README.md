@@ -120,6 +120,139 @@ MailMatrix follows a serverless architecture using the following AWS services:
 
 To scale the MailMatrix project beyond its current sandbox environment, one can easily transition to sending emails to unverified recipients by moving out of the SES sandbox. This transition involves a simple process of requesting production access through the Amazon SES console. Once your SES account is out of the sandbox, it can send emails to any email addresses, not just those that are verified. This scalability ensures that MailMatrix can handle large-scale email campaigns efficiently, reaching a broader audience while maintaining the same level of automation, security, and monitoring. By expanding the SES sending limits and integrating with additional AWS services or third-party tools - further enhance the system's capacity and functionality to meet growing demands.
 
+***
+
+## Use Case(#01): Automated Bulk Sending of Offer and Rejection Letters with PDF Attachments
+
+This use case demonstrates how `mailmatrix-stream` can be customized to automatically send offer and rejection letters to candidates via email, with PDF attachments. The list of candidates, their emails, and corresponding letters are provided in a `recipient.csv` file, and the Lambda function handles the rest.
+
+### Table of Contents
+- [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
+- [Folder Structure](#folder-structure)
+- [Setup and Configuration](#setup-and-configuration)
+  - [Step 1: Prepare the Recipient List](#step-1-prepare-the-recipient-list)
+  - [Step 2: Customize the Lambda Function](#step-2-customize-the-lambda-function)
+  - [Step 3: AWS Resource Configuration](#step-3-aws-resource-configuration)
+- [Testing](#testing)
+- [Conclusion](#conclusion)
+
+## Introduction
+
+This customization extends the functionality of `mailmatrix-stream` to allow HR teams or organizations to send bulk offer and rejection letters to candidates. By uploading a recipient list in CSV format and providing the corresponding PDF documents, the Lambda function will send the appropriate email with the attached letter to each recipient.
+
+## Prerequisites
+
+- **AWS Lambda**: Function for sending bulk emails.
+- **AWS SES (Simple Email Service)**: Service used to send emails.
+- **Recipient List CSV**: A file containing recipient emails, names, statuses (Offer/Rejection), and corresponding PDFs.
+- **PDF Offer and Rejection Letters**: Individualized PDFs for each candidate stored locally or in an S3 bucket.
+
+## Folder Structure
+
+This use case demonstrates how the `mailmatrix-stream` system can be extended to send bulk offer and rejection letters to candidates, complete with PDF attachments, using AWS Lambda and SES.
+
+### Directory Structure
+
+```bash
+use_case/
+├── bulk_offer_rejection/
+│   ├── recipient.csv                  # List of email recipients with offer/rejection status and corresponding attachment file names
+│   ├── offer_letter_template.pdf       # Template for the offer letter to be sent as a PDF attachment
+│   ├── rejection_letter_template.pdf   # Template for the rejection letter to be sent as a PDF attachment
+│   ├── lambda_function.py              # Lambda function code for sending bulk emails with attachments
+│   ├── README.md                       # Documentation for the bulk offer/rejection use case
+│   └── requirements.txt                # Python dependencies for the Lambda function
+```
+
+
+### `recipient.csv` Format
+
+| Email              | Name           | Status    | Attachment_File            |
+|--------------------|----------------|-----------|----------------------------|
+| shrey@example.com   | Shrey Kumar    | Offer     | offer_shrey_kumar.pdf      |
+| shreya@example.com  | Shreya Mehta   | Rejection | rejection_shreya_mehta.pdf |
+| ramesh@example.com  | Ramesh Verma   | Offer     | offer_ramesh_verma.pdf     |
+
+The CSV file should contain the following columns:
+- **Email**: Candidate's email address.
+- **Name**: Candidate's name.
+- **Status**: Status of the candidate (Offer or Rejection).
+- **Attachment_File**: The file name of the PDF that will be attached to the email.
+
+## Setup and Configuration
+
+### Step 1: Prepare the Recipient List
+
+Prepare the `recipient.csv` file with the relevant details (email, name, status, and attachment file) as outlined above. Ensure that the attachment filenames in the CSV match the actual filenames of the PDFs stored locally or in an S3 bucket.
+
+### Step 2: Customize the Lambda Function
+
+We customize the `lambda_function.py` to process the `recipient.csv` and send emails with the appropriate PDF attachments based on the candidate's status (Offer or Rejection).
+
+#### Key Customizations in `lambda_function.py`
+
+- **CSV Parsing**: Reads the recipient list from `recipient.csv`.
+- **Conditional Logic**: Determines whether to send an offer or rejection letter based on the `Status` column.
+- **PDF Attachment**: Fetches the corresponding PDF file from local storage or an S3 bucket and attaches it to the email.
+- **Email Sending**: Sends the email through AWS SES with the correct subject line and attached PDF.
+
+#### Example Code
+
+```python
+import boto3
+import csv
+import os
+
+
+ses_client = boto3.client('ses', region_name='ap-south-1')
+
+def send_email(recipient, subject, body_text, body_html, attachment):
+    # Email sending logic with attachment
+    pass
+
+def lambda_handler(event, context):
+    
+    with open('/path/to/recipient.csv', 'r') as csv_file:
+        reader = csv.DictReader(csv_file)
+        for row in reader:
+            email = row['Email']
+            name = row['Name']
+            status = row['Status']
+            attachment_file = row['Attachment_File']
+
+            if status == 'Offer':
+                subject = f"Offer Letter for {name}"
+                body_text = f"Dear {name},\n\nPlease find your offer letter attached."
+            else:
+                subject = f"Rejection Letter for {name}"
+                body_text = f"Dear {name},\n\nWe regret to inform you that you have not been selected."
+
+            # Load attachment from local path or S3
+            with open(f'/path/to/attachments/{attachment_file}', 'rb') as pdf_file:
+                pdf_data = pdf_file.read()
+
+            send_email(email, subject, body_text, None, pdf_data)
+
+```
+### Step 3: AWS Resource Configuration
+-  **SES Setup**: Verify the sending email address (e.g., My own: guptashrey555@gmail.com) in SES.
+-  **S3 Bucket (optional)**: Store the PDF files for offer and rejection letters if accessing remotely.
+-  **Lambda Deployment**: Deploy the Lambda function via the AWS Management Console. Ensure it has necessary permissions for SES and S3 (if using S3 for PDFs).
+## Testing
+Test the Lambda function by running it on smaller batches of recipients from the recipient.csv file:
+
+- **Validation**: Verify that emails are sent correctly to each recipient.
+- **Attachment Check**: Ensure that the correct offer or rejection letter PDF is attached to each email.
+- **SES Sending Limits**: Confirm that you are within SES sending limits and that emails are not flagged as spam.
+## Conclusion
+This use case provides a streamlined solution for automating the bulk sending of offer and rejection letters with PDF attachments. By using the power of AWS Lambda, SES, and simple data management in CSV files, HR teams can efficiently communicate with large groups of candidates with minimal manual effort.
+
+With 'mailmatrix-stream', the customization demonstrates how to handle bulk communications securely, quickly, and with complete automation.
+
+***
+
+
 - **Multiple Templates**: Extend the system to support multiple templates, allowing dynamic content for different recipients or campaigns.
 - **Database Integration**: Add a database (e.g., DynamoDB) to track email sending history, store recipient preferences, and handle analytics.
 - **Custom Reporting**: Enhance reporting capabilities to track open rates, bounce rates, and email deliverability.
@@ -135,3 +268,4 @@ MailMatrix provides an efficient, secure, and scalable solution for sending bulk
 - Use CloudWatch logs and dashboards for performance tuning and troubleshooting.
 - Ensure S3 buckets are secure by enabling server-side encryption and limiting access via bucket policies.
 
+[![GitHub](https://img.shields.io/badge/GitHub-shreykumar33-B22222?style=flat-square&logo=github)](https://github.com/shreykumar33)
