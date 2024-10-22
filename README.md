@@ -251,6 +251,8 @@ This use case provides a streamlined solution for automating the bulk sending of
 With 'mailmatrix-stream', the customization demonstrates how to handle bulk communications securely, quickly, and with complete automation.
 
 ***
+<img width="1138" alt="Screenshot 2024-10-22 at 5 19 07 PM" src="https://github.com/user-attachments/assets/4e12c6c8-2d27-4c34-8d6c-7dd14986278d">
+<img width="1502" alt="Screenshot 2024-10-22 at 5 27 06 PM" src="https://github.com/user-attachments/assets/56a9cb83-7ab9-4c05-81f4-c5950bfbcd0f">
 
 
 - **Multiple Templates**: Extend the system to support multiple templates, allowing dynamic content for different recipients or campaigns.
