@@ -6,7 +6,7 @@ from io import StringIO
 s3_client = boto3.client('s3')
 ses_client = boto3.client('ses', region_name='ap-south-1')
 
-# this is the basic email validation function
+
 def is_valid_email(email):
     email_regex = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
     return re.match(email_regex, email)
@@ -21,20 +21,20 @@ def lambda_handler(event, context):
     bucket = event['Records'][0]['s3']['bucket']['name']
     key = event['Records'][0]['s3']['object']['key']
 
-    # getting the recipients file from S3
+    
     response = s3_client.get_object(Bucket=bucket, Key=key)
     recipients_data = response['Body'].read().decode('utf-8')
 
-    # read and process CSV data
+    
     recipients = recipients_data.strip().split("\n")
     
-    # get the rejection/unsubscribe email template from S3
+    
     template_response = s3_client.get_object(Bucket=bucket, Key='rejection_email.html')
     rejection_template = template_response['Body'].read().decode('utf-8')
 
     
     for recipient_line in recipients:
-        recipient_info = recipient_line.split(",")  # Assuming CSV format: email,name
+        recipient_info = recipient_line.split(",") 
         email = recipient_info[0].strip() 
         name = recipient_info[1].strip() if len(recipient_info) > 1 else 'Valued Customer'
         
