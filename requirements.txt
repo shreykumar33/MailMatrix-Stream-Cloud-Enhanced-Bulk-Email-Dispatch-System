@@ -1,0 +1,2 @@
+boto3==1.28.10  # for interacting with AWS services like S3, SES, Lambda
+jinja2==3.1.2   # for rendering email templates
